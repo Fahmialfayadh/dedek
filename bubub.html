@@ -563,7 +563,7 @@
 </head>
 
 <body>
-
+  <audio id="bgm" src="assets/wannabe.mp3" preload="auto" loop playsinline></audio>
   <main class="pixel-ui">
 
     <!-- Corner Decorations (Images) -->
@@ -788,6 +788,46 @@
   </main>
 
   <script>
+    var bgm = document.getElementById("bgm");
+
+    function rememberBgmPosition() {
+      if (!bgm) return;
+      try {
+        sessionStorage.setItem("bgmTime", String(bgm.currentTime || 0));
+      } catch (err) { }
+    }
+
+    function restoreBgmPosition() {
+      if (!bgm) return;
+      try {
+        var saved = parseFloat(sessionStorage.getItem("bgmTime") || "0");
+        if (!isNaN(saved) && saved > 0) {
+          var applyTime = function () {
+            try {
+              bgm.currentTime = saved;
+            } catch (err) { }
+          };
+          if (bgm.readyState >= 1) applyTime();
+          else bgm.addEventListener("loadedmetadata", applyTime, { once: true });
+        }
+      } catch (err) { }
+    }
+
+    function tryPlayBgm() {
+      if (!bgm) return;
+      var p = bgm.play();
+      if (p && typeof p.catch === "function") p.catch(function () { });
+    }
+
+    if (bgm) {
+      bgm.volume = 0.4;
+      restoreBgmPosition();
+      tryPlayBgm();
+      document.addEventListener("pointerdown", tryPlayBgm, { once: true });
+      document.addEventListener("keydown", tryPlayBgm, { once: true });
+      window.addEventListener("beforeunload", rememberBgmPosition);
+    }
+
     var activeDetailScroll = 0;
 
     function updateActiveScrollSource() {

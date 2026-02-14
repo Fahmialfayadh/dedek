@@ -573,6 +573,7 @@
 </head>
 
 <body>
+    <audio id="bgm" src="assets/wannabe.mp3" preload="auto" loop playsinline></audio>
     <div class="bg-blob blob-a"></div>
     <div class="bg-blob blob-b"></div>
     <div class="bg-blob blob-c"></div>
@@ -651,6 +652,46 @@
     </main>
 
     <script>
+        var bgm = document.getElementById("bgm");
+
+        function rememberBgmPosition() {
+            if (!bgm) return;
+            try {
+                sessionStorage.setItem("bgmTime", String(bgm.currentTime || 0));
+            } catch (err) { }
+        }
+
+        function restoreBgmPosition() {
+            if (!bgm) return;
+            try {
+                var saved = parseFloat(sessionStorage.getItem("bgmTime") || "0");
+                if (!isNaN(saved) && saved > 0) {
+                    var applyTime = function () {
+                        try {
+                            bgm.currentTime = saved;
+                        } catch (err) { }
+                    };
+                    if (bgm.readyState >= 1) applyTime();
+                    else bgm.addEventListener("loadedmetadata", applyTime, { once: true });
+                }
+            } catch (err) { }
+        }
+
+        function tryPlayBgm() {
+            if (!bgm) return;
+            var p = bgm.play();
+            if (p && typeof p.catch === "function") p.catch(function () { });
+        }
+
+        if (bgm) {
+            bgm.volume = 0.4;
+            restoreBgmPosition();
+            tryPlayBgm();
+            document.addEventListener("pointerdown", tryPlayBgm, { once: true });
+            document.addEventListener("keydown", tryPlayBgm, { once: true });
+            window.addEventListener("beforeunload", rememberBgmPosition);
+        }
+
         var scenes = [
             document.getElementById("scene1"),
             document.getElementById("scene-contract"),
@@ -754,6 +795,7 @@
                 burst(window.innerWidth * 0.5, window.innerHeight * 0.5, 22);
                 /* Redirect ke /bubub setelah animasi */
                 setTimeout(function () {
+                    rememberBgmPosition();
                     window.location.href = "/bubub";
                 }, 800);
             }
