@@ -1,0 +1,901 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valentine - Memory Room</title>
+  <meta name="description" content="Website Valentine interaktif - Memory Room pixel art desktop." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Inline critical structural styles for the new layout (moved from style.css for immediate effect) */
+    :root {
+      --pixel-bg: #ffbfc8;
+      --pixel-card: rgba(30, 30, 40, 0.85);
+      --pixel-text: #fff;
+      --pixel-accent: #ff7c8f;
+    }
+
+    body {
+      font-family: 'VT323', monospace;
+      background-color: var(--pixel-bg);
+      /* Fallback if background image doesn't load */
+      background-image: url('https://i.pinimg.com/originals/ce/a1/1e/cea11ef06e0bea2a846c483866d98418.gif');
+      /* Pixel art sunset */
+      background-size: cover;
+      background-position: center;
+    }
+
+    .pixel-ui {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    /* --- SCREENS --- */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: scale(0.95);
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* --- HOME: SURPRISE FILES --- */
+    .home-container {
+      text-align: center;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2rem;
+      border-radius: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    .main-title {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      color: #fff;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .main-sub {
+      font-size: 1.2rem;
+      color: #ddd;
+      margin-bottom: 2rem;
+      letter-spacing: 1px;
+    }
+
+    .folder-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    .folder-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .folder-item:hover {
+      transform: translateY(-5px);
+    }
+
+    /* --- SVG FOLDER STYLES --- */
+    .folder-svg-container {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 0.5rem;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .folder-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+    }
+
+    /* Animation parts */
+    .folder-front {
+      transition: transform 0.3s ease;
+      transform-origin: bottom center;
+    }
+
+    .folder-glyph {
+      transition: transform 0.3s ease;
+      transform-origin: center center;
+    }
+
+    /* Hover Interaction */
+    .folder-item:hover .folder-svg-container {
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    .folder-item:hover .folder-front {
+      transform: scaleY(0.9) skewX(-2deg);
+    }
+
+    .folder-item:hover .folder-glyph {
+      transform: translateY(-5px) scale(1.1);
+    }
+
+    /* Active/Click State */
+    .folder-item:active .folder-svg-container {
+      transform: scale(0.95);
+    }
+
+    .folder-name {
+      font-size: 1.2rem;
+      color: #fff;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    /* --- DETAIL LAYOUTS --- */
+    .detail-container {
+      width: min(90%, 800px);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: rgba(20, 20, 30, 0.85);
+      border: 3px solid #fff;
+      border-radius: 8px;
+      padding: 2rem;
+      position: relative;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(28, 22, 32, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 999px;
+      padding: 0.15rem 0.7rem;
+      color: #ff7c8f;
+      font-size: 1.35rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-shadow: 2px 2px 0 #000;
+      transition: transform 0.2s, background 0.2s;
+      z-index: 160;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-1px) scale(1.03);
+      background: rgba(28, 22, 32, 0.95);
+    }
+
+    .detail-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+      padding-bottom: 1rem;
+    }
+
+    .detail-title {
+      font-size: 2.5rem;
+      color: #ff9eff;
+      text-shadow: 3px 3px 0 #4a1a2e;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .detail-sub {
+      font-size: 1.1rem;
+      color: #ccc;
+      margin-top: 0.5rem;
+    }
+
+    /* PHOTO GRID */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .photo-card {
+      background: #fff;
+      padding: 0.5rem 0.5rem 2rem 0.5rem;
+      color: #000;
+      text-align: center;
+      transform: rotate(var(--rot, 0deg));
+      transition: transform 0.3s, z-index 0.3s;
+      box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .photo-card:hover {
+      transform: scale(1.1) rotate(0deg);
+      z-index: 10;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: grayscale(20%);
+      transition: filter 0.3s;
+    }
+
+    .photo-card:hover img {
+      filter: grayscale(0%);
+    }
+
+    /* LETTER */
+    .letter-body {
+      font-size: 1.3rem;
+      line-height: 1.6;
+      text-align: justify;
+    }
+
+    .spotify-embed {
+      margin: 1rem auto 2rem;
+      display: block;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    /* SURPRISE CARD */
+    .surprise-box {
+      border: 3px solid #ff7c8f;
+      padding: 2rem;
+      text-align: center;
+      background: #fff;
+      color: #000;
+    }
+
+    .btn-final {
+      background: #ff3f88;
+      color: #fff;
+      border: 3px solid #000;
+      padding: 0.8rem 2rem;
+      font-size: 1.5rem;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 1rem;
+      box-shadow: 4px 4px 0 #000;
+    }
+
+    .btn-final:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    /* --- NEW LETTER LAYOUT --- */
+    .letter-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 2rem;
+      align-items: start;
+      text-align: left;
+    }
+
+    .letter-text {
+      font-size: 1.2rem;
+      line-height: 1.7;
+    }
+
+    .letter-gallery {
+      position: relative;
+      height: 100%;
+      min-height: 300px;
+    }
+
+    .polaroid-mini {
+      position: absolute;
+      background: #fff;
+      padding: 0.5rem 0.5rem 2rem 0.5rem;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s, z-index 0.3s;
+      width: 180px;
+    }
+
+    .polaroid-mini img {
+      width: 100%;
+      height: auto;
+      filter: grayscale(30%);
+    }
+
+    .polaroid-mini:hover {
+      transform: scale(1.1) rotate(0deg) !important;
+      z-index: 10;
+      filter: none;
+    }
+
+    .polaroid-mini:nth-child(1) {
+      top: 0;
+      right: 20px;
+      transform: rotate(5deg);
+      z-index: 2;
+    }
+
+    .polaroid-mini:nth-child(2) {
+      top: 140px;
+      right: 80px;
+      transform: rotate(-8deg);
+      z-index: 1;
+    }
+
+    /* --- RESPONSIVE MOBILE STYLES --- */
+    @media (max-width: 768px) {
+
+      /* General Layout */
+      .pixel-ui {
+        padding: 0.5rem;
+      }
+
+      .main-title {
+        font-size: 2.2rem;
+      }
+
+      .folder-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        width: 100%;
+      }
+
+      .folder-item {
+        margin-bottom: 0.5rem;
+      }
+
+      /* Detail Containers */
+      .detail-container {
+        width: 95%;
+        padding: 3.5rem 1rem 1rem 1rem;
+        /* Top padding for back button */
+        height: 90vh;
+      }
+
+      .back-btn {
+        top: 0.8rem;
+        left: 0.8rem;
+        font-size: 1.1rem;
+        z-index: 200;
+        padding: 0.3rem 0.65rem;
+      }
+
+      .detail-title {
+        font-size: 1.8rem;
+      }
+
+      /* Letter Section - Reflow for Mobile */
+      .letter-layout {
+        grid-template-columns: 1fr;
+        /* Stack vertically */
+        gap: 2rem;
+      }
+
+      .letter-body,
+      .letter-text {
+        font-size: 1rem;
+        /* Readable body text */
+      }
+
+      .letter-gallery {
+        display: flex;
+        /* Show photos! */
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        height: auto;
+        min-height: auto;
+        margin-top: 1rem;
+      }
+
+      .polaroid-mini {
+        position: relative;
+        /* No longer absolute */
+        top: auto !important;
+        right: auto !important;
+        left: auto !important;
+        transform: rotate(var(--rot, 0deg)) !important;
+        /* Use faint rotation or none */
+        width: 45%;
+        /* 2 per row approx */
+        min-width: 140px;
+      }
+
+      .polaroid-mini:nth-child(even) {
+        --rot: 2deg;
+      }
+
+      .polaroid-mini:nth-child(odd) {
+        --rot: -2deg;
+      }
+
+      /* Photos Grid */
+      .photo-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 cols looks better than 1 big col usually */
+        gap: 0.5rem;
+      }
+
+      .photo-card {
+        padding-bottom: 1.5rem;
+      }
+
+      .photo-card {
+        padding-bottom: 1.5rem;
+      }
+    }
+
+    /* --- DECORATIONS (Copied from Intro) --- */
+    body {
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" style="fill:pink;stroke:deeppink;stroke-width:2;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>') 16 16, auto;
+    }
+
+    .corner-deco {
+      position: fixed;
+      z-index: 30;
+      pointer-events: none;
+      filter: drop-shadow(2px 5px 10px rgba(0, 0, 0, 0.15));
+      width: 68px;
+      height: auto;
+      will-change: transform;
+    }
+
+    .snoopy-deco {
+      position: fixed;
+      bottom: 10px;
+      width: clamp(116px, 16vw, 180px);
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0.95;
+      filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.24));
+      will-change: transform;
+    }
+
+    .snoopy-left {
+      left: 10px;
+    }
+
+    .snoopy-right {
+      right: 10px;
+      width: clamp(128px, 20vw, 220px);
+    }
+
+    .top-left {
+      top: 10px;
+      left: 10px;
+    }
+
+    .top-right {
+      top: 10px;
+      right: 10px;
+    }
+
+    .bottom-left {
+      bottom: 10px;
+      left: 10px;
+    }
+
+    .bottom-right {
+      bottom: 10px;
+      right: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .corner-deco {
+        width: 48px;
+      }
+
+      .snoopy-deco {
+        width: 92px;
+        bottom: 8px;
+      }
+
+      .snoopy-right {
+        width: 112px;
+      }
+
+      .top-left {
+        top: 3.5rem;
+        left: 6px;
+      }
+
+      .top-right {
+        top: 6px;
+        right: 6px;
+      }
+
+      .bottom-left {
+        bottom: 6px;
+        left: 6px;
+      }
+
+      .bottom-right {
+        bottom: 6px;
+        right: 6px;
+      }
+    }
+
+    /* Floating Background Hearts (Image) */
+    .bg-heart-img {
+      position: fixed;
+      top: 100vh;
+      width: 30px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatUp linear forwards;
+      will-change: transform, opacity;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
+        opacity: 0;
+      }
+
+      12% {
+        opacity: 0.68;
+      }
+
+      52% {
+        transform: translate3d(calc(var(--drift-x, 0px) * 0.55), -62vh, 0) rotate(calc(var(--spin, 270deg) * 0.5)) scale(1.08);
+      }
+
+      to {
+        transform: translate3d(var(--drift-x, 0px), -125vh, 0) rotate(var(--spin, 270deg)) scale(0.84);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="pixel-ui">
+
+    <!-- Corner Decorations (Images) -->
+    <img class="corner-deco top-left" data-base-rot="-15" data-depth="0.95"
+      src="https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u2728.png"
+      alt="Sparkles">
+    <img class="corner-deco top-right" data-base-rot="15" data-depth="1.05"
+      src="https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u1f48c.png"
+      alt="Letter">
+    <img class="corner-deco bottom-left" data-base-rot="15" data-depth="1.15"
+      src="https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u1f339.png"
+      alt="Rose">
+    <img class="corner-deco bottom-right" data-base-rot="-15" data-depth="1.2"
+      src="https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u1f498.png"
+      alt="Arrow">
+    <img class="snoopy-deco snoopy-left" data-base-rot="-3" data-depth="1.45" src="assets/free-snoopy/free-snoopy.svg"
+      alt="Snoopy">
+    <img class="snoopy-deco snoopy-right" data-base-rot="3" data-depth="1.6"
+      src="assets/snoopy-and-woodstock/snoopy-and-woodstock.svg"
+      alt="Snoopy and Woodstock">
+
+    <!-- HOME SCREEN: SURPRISE FILES -->
+    <section id="screen-home" class="screen active">
+      <div class="home-container">
+        <h1 class="main-title">Surprise Files</h1>
+        <p class="main-sub">Love unfolds one click at a time</p>
+
+        <div class="folder-grid">
+          <!-- Folder 1: Our Memories (Pink/Heart) -->
+          <div class="folder-item" onclick="openScreen('screen-photos')">
+            <div class="folder-svg-container">
+              <svg viewBox="0 0 100 100" class="folder-svg icon-memories">
+                <!-- Folder Back -->
+                <path
+                  d="M10 25 L35 25 L45 35 L90 35 C93 35 95 37 95 40 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 L5 30 C5 27 7 25 10 25 Z"
+                  fill="#d44d7d" />
+                <!-- Paper Content (Peeking out) -->
+                <rect x="15" y="30" width="70" height="50" fill="#fff" rx="2" transform="rotate(-3 50 60)" />
+                <image href="assets/photos/kamu-1.jpg" x="20" y="35" width="60" height="40"
+                  preserveAspectRatio="xMidYMid slice" clip-path="inset(0px round 2px)" opacity="0.8" />
+                <!-- Folder Front -->
+                <path class="folder-front" d="M5 45 L95 45 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 Z"
+                  fill="#ff7c8f" />
+                <!-- Glyph (Heart) -->
+                <path class="folder-glyph"
+                  d="M50 75 C30 60 25 55 25 50 A 10 10 0 0 1 45 45 A 10 10 0 0 1 50 50 A 10 10 0 0 1 55 45 A 10 10 0 0 1 75 50 C75 55 70 60 50 75 Z"
+                  fill="#fff" filter="drop-shadow(0 2px 3px rgba(0,0,0,0.2))" />
+              </svg>
+            </div>
+            <span class="folder-name">Our Memories</span>
+          </div>
+
+          <!-- Folder 2: Read Me (Blue/Document) -->
+          <div class="folder-item" onclick="openScreen('screen-letter')">
+            <div class="folder-svg-container">
+              <svg viewBox="0 0 100 100" class="folder-svg icon-readme">
+                <!-- Back -->
+                <path
+                  d="M10 25 L35 25 L45 35 L90 35 C93 35 95 37 95 40 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 L5 30 C5 27 7 25 10 25 Z"
+                  fill="#4a7eb0" />
+                <!-- Paper -->
+                <rect x="25" y="20" width="50" height="60" fill="#f8f9fa" rx="1" />
+                <line x1="30" y1="30" x2="70" y2="30" stroke="#ccc" stroke-width="2" />
+                <line x1="30" y1="36" x2="70" y2="36" stroke="#ccc" stroke-width="2" />
+                <line x1="30" y1="42" x2="60" y2="42" stroke="#ccc" stroke-width="2" />
+                <!-- Front -->
+                <path class="folder-front" d="M5 45 L95 45 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 Z"
+                  fill="#8bc4ff" />
+                <!-- Glyph (Pen/Feather) -->
+                <path class="folder-glyph" d="M40 70 L60 50 L65 55 L45 75 L40 75 L40 70 M62 48 L67 53" stroke="#fff"
+                  stroke-width="3" stroke-linecap="round" fill="none" filter="drop-shadow(0 2px 2px rgba(0,0,0,0.2))" />
+              </svg>
+            </div>
+            <span class="folder-name">Read Me</span>
+          </div>
+
+          <!-- Folder 3: Playlist (Green/Music) -->
+          <div class="folder-item" onclick="openScreen('screen-playlist')">
+            <div class="folder-svg-container">
+              <svg viewBox="0 0 100 100" class="folder-svg icon-playlist">
+                <!-- Back -->
+                <path
+                  d="M10 25 L35 25 L45 35 L90 35 C93 35 95 37 95 40 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 L5 30 C5 27 7 25 10 25 Z"
+                  fill="#358a5b" />
+                <!-- Vinyl Record peeking -->
+                <circle cx="50" cy="50" r="22" fill="#111" />
+                <circle cx="50" cy="50" r="8" fill="#ff4f88" />
+                <!-- Front -->
+                <path class="folder-front" d="M5 45 L95 45 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 Z"
+                  fill="#4fd688" />
+                <!-- Glyph (Music Note) -->
+                <path class="folder-glyph"
+                  d="M45 50 L45 70 A 5 5 0 1 1 35 70 L35 65 L45 65 L45 50 L65 45 L65 65 A 5 5 0 1 1 55 65 L55 60 L65 60 L65 45 L45 50"
+                  fill="#fff" filter="drop-shadow(0 2px 2px rgba(0,0,0,0.2))" />
+              </svg>
+            </div>
+            <span class="folder-name">spotispoti</span>
+          </div>
+
+          <!-- Folder 4: Open Last! (Purple/Gold Star) -->
+          <div class="folder-item" onclick="openScreen('screen-surprise')">
+            <div class="folder-svg-container">
+              <svg viewBox="0 0 100 100" class="folder-svg icon-surprise">
+                <!-- Back -->
+                <path
+                  d="M10 25 L35 25 L45 35 L90 35 C93 35 95 37 95 40 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 L5 30 C5 27 7 25 10 25 Z"
+                  fill="#7a3e9c" />
+                <!-- Sparkles peeking -->
+                <path d="M30 30 L32 25 L34 30 L39 32 L34 34 L32 39 L30 34 L25 32 Z" fill="#ffd700" />
+                <path d="M70 35 L72 30 L74 35 L79 37 L74 39 L72 44 L70 39 L65 37 Z" fill="#ffd700" />
+                <!-- Front -->
+                <path class="folder-front" d="M5 45 L95 45 L95 80 C95 83 93 85 90 85 L10 85 C7 85 5 83 5 80 Z"
+                  fill="#b066d6" />
+                <!-- Glyph (Star) -->
+                <path class="folder-glyph" d="M50 50 L53 60 L63 60 L55 66 L58 76 L50 70 L42 76 L45 66 L37 60 L47 60 Z"
+                  fill="#ffd700" stroke="#fff" stroke-width="2" filter="drop-shadow(0 2px 2px rgba(0,0,0,0.2))" />
+              </svg>
+            </div>
+            <span class="folder-name">!?</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 1: PHOTOS -->
+    <section id="screen-photos" class="screen">
+      <div class="detail-container">
+        <button class="back-btn" onclick="goHome()">⬅ Back</button>
+        <div class="detail-header">
+          <h2 class="detail-title">sedikit spoiler isi albumku</h2>
+          <p class="detail-sub">These still make me smile.</p>
+        </div>
+        <div class="photo-grid">
+          <!-- User: Ganti src dengan foto kalian -->
+          <div class="photo-card" style="--rot: -2deg"><img src="assets/photos/kamu-1.jpg" alt="Foto"></div>
+          <div class="photo-card" style="--rot: 2deg"><img src="assets/photos/kita-1.jpg" alt="Foto"></div>
+          <div class="photo-card" style="--rot: -1deg"><img src="assets/photos/kamu-2.jpg" alt="Foto"></div>
+          <div class="photo-card" style="--rot: 3deg"><img src="assets/photos/kita-2.jpg" alt="Foto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: LETTER -->
+    <section id="screen-letter" class="screen">
+      <div class="detail-container">
+        <button class="back-btn" onclick="goHome()">⬅ Back</button>
+        <div class="detail-header">
+          <h2 class="detail-title">from my heart to Dedek</h2>
+          <p class="detail-sub">Minum segelas cokelat</p>
+        </div>
+
+        <iframe class="spotify-embed" style="border-radius:12px"
+          src="https://open.spotify.com/embed/playlist/1khmYOiDnQPstSBHidP9na?utm_source=generator" width="100%"
+          height="80" frameBorder="0" allowfullscreen=""
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+        <div class="letter-layout">
+          <div class="letter-text">
+            <p>Dedek,</p>
+            <br>
+            <p>Aku sebenrnya gatauu mauu nuliss apaaa, butt makasih yaa udah menjadi bagian dari hidupku (template bgt njir). 
+            <br> jujur ga nyangka kita bisa sejauh ini. Berawal dari lu caper di note ig (bilang y aja napa), HUH.
+            <br>segala lika liku, tawa, tangis, hitam, putih, semua kita lewatin dalam waktu yang singkat ini. absolute cinema
+            <br>  
+            <br> semangatt yaa camabaaa, jangann stress soal utbkkk, utbk ga sesulit itu kokkk.. utbk ga sesulit try out.
+            <br> nilai try out emg banyak direndahin biar kalian belajar teruss.. padaahal aslinya ga seketat itukokk untuk penilaiain.
+            <br> note dari aku: jangan maaksa belajar pas stresss plss, healing sesekalii gpp.
+            <br> aku percaya kamu bisa lewatin semua ini dengan baikkk, aku yakin kamu bisa dapet hasil yang memuaskan
+            <p>Happy Valentine's Day. ❤️</p>
+          </div>
+
+          <div class="letter-gallery">
+            <!-- Side Photos -->
+            <div class="polaroid-mini">
+              <img src="assets/photos/kamu-1.jpg" alt="You">
+            </div>
+            <div class="polaroid-mini">
+              <img src="assets/photos/kita-1.jpg" alt="Us">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: PLAYLIST (Dedicated) -->
+    <section id="screen-playlist" class="screen">
+      <div class="detail-container">
+        <button class="back-btn" onclick="goHome()">⬅ Back</button>
+        <div class="detail-header">
+          <h2 class="detail-title">playlist kita (gpernah diupdate)</h2>
+          <p class="detail-sub">walaupun ga diupdate, tetap menjadi fav </p>
+        </div>
+        <iframe style="border-radius:12px"
+          src="https://open.spotify.com/embed/playlist/1khmYOiDnQPstSBHidP9na?utm_source=generator" width="100%"
+          height="352" frameBorder="0" allowfullscreen=""
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: SURPRISE -->
+    <section id="screen-surprise" class="screen">
+      <div class="detail-container" style="text-align:center;">
+        <button class="back-btn" onclick="goHome()">⬅ Back</button>
+        <div class="surprise-box">
+          <h2 class="detail-title" style="color:#ff3f88;">For You</h2>
+          <p style="font-size:1.5rem; margin: 1rem 0;">Ready for the final step?</p>
+          <button class="btn-final" onclick="toggleFinale()">YES, I'M READY</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINALE OVERLAY -->
+    <section id="finale" class="screen">
+      <div style="text-align: center; color: white;">
+        <h1 class="main-title">Happy Valentine! 💖</h1>
+        <p id="typeText" style="font-size: 1.5rem; max-width: 600px; margin: 0 auto;"></p>
+        <br>
+        <button class="btn-final" onclick="goHome()">Replay</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    var activeDetailScroll = 0;
+
+    function updateActiveScrollSource() {
+      var activeContainer = document.querySelector('.screen.active .detail-container');
+      activeDetailScroll = activeContainer ? activeContainer.scrollTop : 0;
+    }
+
+    function openScreen(id) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      updateActiveScrollSource();
+    }
+
+    function goHome() {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById('screen-home').classList.add('active');
+      updateActiveScrollSource();
+    }
+
+    function toggleFinale() {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById('finale').classList.add('active');
+      updateActiveScrollSource();
+
+      var text = "ly 💞";
+      var el = document.getElementById('typeText');
+      el.textContent = "";
+      var i = 0;
+      var timer = setInterval(function () {
+        el.textContent += text[i];
+        i++;
+        if (i >= text.length) clearInterval(timer);
+      }, 50);
+    }
+
+    /* Dynamic decor motion: time drift + pointer parallax + active screen scroll */
+    var decorItems = Array.from(document.querySelectorAll('.corner-deco, .snoopy-deco'));
+    var pointerX = 0;
+    var pointerY = 0;
+    var smoothX = 0;
+    var smoothY = 0;
+    var smoothScroll = 0;
+
+    document.querySelectorAll('.detail-container').forEach(function (el) {
+      el.addEventListener('scroll', function () {
+        var holder = el.closest('.screen');
+        if (holder && holder.classList.contains('active')) {
+          activeDetailScroll = el.scrollTop;
+        }
+      }, { passive: true });
+    });
+
+    window.addEventListener('pointermove', function (e) {
+      pointerX = ((e.clientX / window.innerWidth) - 0.5) * 2;
+      pointerY = ((e.clientY / window.innerHeight) - 0.5) * 2;
+    }, { passive: true });
+
+    window.addEventListener('pointerleave', function () {
+      pointerX = 0;
+      pointerY = 0;
+    });
+
+    function animateDecor() {
+      smoothX += (pointerX - smoothX) * 0.08;
+      smoothY += (pointerY - smoothY) * 0.08;
+      smoothScroll += (activeDetailScroll - smoothScroll) * 0.12;
+
+      var t = performance.now() * 0.001;
+      decorItems.forEach(function (el, i) {
+        var depth = parseFloat(el.dataset.depth || '1');
+        var baseRot = parseFloat(el.dataset.baseRot || '0');
+        var swayX = Math.sin(t * (0.8 + i * 0.09) + i) * (2.3 + depth * 2.1);
+        var swayY = Math.cos(t * (0.95 + i * 0.11) + i * 0.6) * (1.8 + depth * 1.9);
+        var lookX = smoothX * depth * 8;
+        var lookY = smoothY * depth * 6;
+        var scrollY = -smoothScroll * depth * 0.06;
+        var rot = baseRot + Math.sin(t * (0.75 + i * 0.05) + i) * 1.8;
+        el.style.transform =
+          'translate3d(' + (swayX + lookX).toFixed(2) + 'px,' +
+          (swayY + lookY + scrollY).toFixed(2) + 'px,0) rotate(' + rot.toFixed(2) + 'deg)';
+      });
+
+      requestAnimationFrame(animateDecor);
+    }
+
+    updateActiveScrollSource();
+    requestAnimationFrame(animateDecor);
+
+    /* Floating Hearts Background (Images) */
+    setInterval(function () {
+      var h = document.createElement('img');
+      h.className = 'bg-heart-img';
+      h.src = Math.random() > 0.5
+        ? 'https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u1f496.png'
+        : 'https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u1f497.png';
+
+      h.style.left = Math.random() * 100 + 'vw';
+      h.style.animationDuration = (Math.random() * 4 + 8.5) + 's';
+      h.style.setProperty('--drift-x', (Math.random() * 120 - 60).toFixed(0) + 'px');
+      h.style.setProperty('--spin', (Math.random() * 260 + 140).toFixed(0) + 'deg');
+
+      var size = Math.random() * 30 + 20;
+      h.style.width = size + 'px';
+
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 15000);
+    }, 780);
+  </script>
+</body>
+
+</html>
